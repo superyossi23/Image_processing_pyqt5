@@ -3,6 +3,8 @@
 2021/01/04 "Qsettings" synced. "imshow" added (image2image). "INPUT/OUTPUT" radio button added (image2image).
 2021/01/08 "q_jpg" added (image2image). saved_info added (image_processing_GUI.py).
 2022.09.19 Load ini file.
+2023.01.28 tuple error fixed
+
 """
 
 from PyQt5 import QtWidgets as qtw
@@ -477,6 +479,7 @@ class MainWindow(qtw.QWidget):
             path=self.path0_ent.text(),
             filename0=self.filename0_ent.text(),
             filename1=self.filename1_ent.text(),
+            grayscale=self.grayscale_chk.isChecked()
         )
 
     # ---- #
