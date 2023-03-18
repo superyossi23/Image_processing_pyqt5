@@ -4,7 +4,7 @@
 2022/01/04 imshow added (image2image).
 2022/01/08 "q_jpg" added (image2image).
 2022/02/12 Upper letter format enabled (e.g. PNG).
-2023/01/28 tuple error fixed
+2023/01/31 tuple error fixed
 
 def image_output: Outputs image. Works in .tif/.png/.jpg.
 def pdf2image: Convert a PDF to IMAGEs. Works in .tif/.png/.jpg.
@@ -318,9 +318,8 @@ def add_image_tif(
     ret0, imgs0 = cv.imreadmulti(path + '/' + f0)
     ret1, imgs1 = cv.imreadmulti(path + '/' + f1)
 
-    if type(imgs0) != list:  # 23.01.29 miniconda env. error handling.
-        print('type(imgs0):', type(imgs0), '\nimgs0 will be changed to a list')
-        imgs0_l = list(imgs0)
+    print('type(imgs0):', type(imgs0), '\nimgs0 (tuple) will be changed to a list')
+    imgs0_l = list(imgs0)
 
     # Add img1 on img0
     cnt = 0
@@ -405,6 +404,10 @@ def add_BefAft(
     # Read (Multi-frame Tiff file)
     ret0, imgs0 = cv.imreadmulti(path + '/' + f0)  #BGR
     ret1, imgs1 = cv.imreadmulti(path + '/' + f1)  #BGR
+
+    print('type(imgs0):', type(imgs0), '\nimgs0 (tuple) will be changed to a list')
+    imgs0_l = list(imgs0)
+
     # Add img1 on img0
     cnt = 0
     for img0, img1 in zip(imgs0, imgs1):
@@ -417,12 +420,12 @@ def add_BefAft(
 
         # Add img1 on img0
         img1_on_img0 = cv.add(img0, img1)
-        imgs0[cnt] = img1_on_img0
+        imgs0_l[cnt] = img1_on_img0
         cnt += 1
 
     # Output #
-    print('Output: ', path + '/' + f0.split('.')[0] + '_result.tif')
-    saveTiffStack(save_path=path + '/' + f0.split('.')[0] + '_result.tif', imgs=imgs0)
+    print('Output: ', path + '/' + f0.split('.')[0] + ' result.tif')
+    saveTiffStack(save_path=path + '/' + f0.split('.')[0] + ' result.tif', imgs=imgs0_l)
     print('add_BefAft() done!!')
 
 
