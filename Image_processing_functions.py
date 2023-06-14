@@ -5,7 +5,9 @@
 2022/01/08 "q_jpg" added (image2image).
 2022/02/12 Upper letter format enabled (e.g. PNG).
 2023/01/31 tuple error fixed
+2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger
 
+def Debugger: Decorator function. Print process time and func name.
 def image_output: Outputs image. Works in .tif/.png/.jpg.
 def pdf2image: Convert a PDF to IMAGEs. Works in .tif/.png/.jpg.
 def pdf2image_dir: Convert all pdf to image in the dir. Works in .tif/.png/.jpg.
@@ -27,7 +29,8 @@ import os
 import glob
 import cv2 as cv
 import matplotlib.pyplot as plt
-from time import gmtime, strftime
+from time import gmtime, strftime, perf_counter
+from functools import wraps
 
 # # Global parameters -----------------------------------------------------------------
 # path = r'C:\Users\A\Desktop\pythonProject\opencvProject\pdf2imageProject'
@@ -44,6 +47,27 @@ from time import gmtime, strftime
 # coloring = 0  # Color select for add_image()/add_image_tif()
 # # -----------------------------------------------------------------------------------
 
+
+def Debugger(fn):
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        start = perf_counter()
+        print('<Dubugger> Execute:\n', fn.__name__)
+        result = fn(*args, **kwargs)
+        end = perf_counter()
+        elapsed = end - start
+
+        args_ = [str(a) for a in args]
+        kwargs_ = ['{0}={1}'.format(k, v) for (k, v) in kwargs.items()]
+        all_args = args_ + kwargs_
+        args_str = ','.join(all_args)
+        print('<Dubugger>\n{0}({1}) \ntook {2:.6f} sec to run.'.format(fn.__name__, args_str, elapsed))
+
+        return result
+    return inner
+
+
+@Debugger
 def image_output(
         pages: list, outputDir: str, format='.tif', filename='output file name'
 ):
@@ -100,6 +124,7 @@ def image_output(
     print('image_output() done!!')
 
 
+@Debugger
 def pdf2image(
     path,
     dpi=300,
@@ -162,6 +187,7 @@ def pdf2image(
     print('pdf2image() done!!')
 
 
+@Debugger
 def pdf2image_dir(
     path: str,
     dpi=300,
@@ -208,6 +234,7 @@ def pdf2image_dir(
         raise Exception('Only works when page_off=True')
 
 
+@Debugger
 def saveTiffStack(
         save_path: str,
         imgs: 'list'
@@ -222,6 +249,7 @@ def saveTiffStack(
     print('saveTiffStack() done!!')
 
 
+@Debugger
 def add_image(
         path: str,
         filename0,  # pdf, filename_t must be bigger than filename1
@@ -287,6 +315,7 @@ def add_image(
     print('add_image() done!!')
 
 
+@Debugger
 def add_image_tif(
         path: str,
         filename0,  # tiff, filename0 must be bigger than filename1 (pixel size)
@@ -374,6 +403,7 @@ def add_image_tif(
     print('add_image_tiff() done!!')
 
 
+@Debugger
 def add_BefAft(
         path: str,
         filename0,  # tif, !filename0 must be bigger than filename1 (pixel size)
@@ -429,6 +459,7 @@ def add_BefAft(
     print('add_BefAft() done!!')
 
 
+@Debugger
 def image2pdf(
         path: str,
         filename: str,
@@ -465,17 +496,21 @@ def matplot(img):
 
 
 # Mask image for making transparent image
-def mask_image(img, b_from, g_from, r_from, b_to, g_to, r_to):
+def mask_image(img, b_lower, g_lower, r_lower, b_upper, g_upper, r_upper, b_out, g_out, r_out, alpha_out):
     # Threshold select
-    color_lower = np.array([b_from, g_from, r_from, 255])
-    color_upper = np.array([b_to, g_to, r_to, 255])
+    color_lower = np.array([b_lower, g_lower, r_lower, 255])
+    color_upper = np.array([b_upper, g_upper, r_upper, 255])
     # Create a mask for threshold color
     img_mask = cv.inRange(img, color_lower, color_upper)
-    # Masked array to 0
-    masked = cv.bitwise_not(img, img, mask=img_mask)
-    return masked
+    # # Masked array to 0
+    # masked = cv.bitwise_not(img, img, mask=img_mask)
+    # Change masked area to selected color
+    img[img_mask == 255] = [b_out, g_out, r_out, alpha_out]  # [B,G,R,α]
+
+    return img
 
 
+@Debugger
 def image2image(
         path=r'C:\Users\A\Desktop\pythonProject\opencvProject\image\temp',
         point_exe0=False,
@@ -487,9 +522,9 @@ def image2image(
         point_dic={'b0': 255, 'g0': 255, 'r0': 255,
                     'b1': 255, 'g1': 255, 'r1': 255,
                    },
-        range_dic = {'b0_from': 255, 'g0_from': 255, 'r0_from': 255, 'b1_from': 255, 'g1_from': 255, 'r1_from': 255,
-                     'b2_from': 255, 'g2_from': 255, 'r2_from': 255, 'b0_to': 255, 'g0_to': 255, 'r0_to': 255,
-                     'b1_to': 255, 'g1_to': 255, 'r1_to': 255, 'b2_to': 255, 'g2_to': 255, 'r2_to': 255,
+        range_dic = {'b_lower': 255, 'g_lower': 255, 'r_lower': 255,
+                     'b_upper': 255, 'g_upper': 255, 'r_upper': 255,
+                     'r_out':255, 'g_out':255, 'b_out':255, 'alpha_out':255
                      },
         imshow=True,
         q_jpg=100
@@ -552,16 +587,18 @@ def image2image(
             if range_exe0:
                 print('range_exe0 = True.')
                 img = mask_image(img,
-                                 range_dic['b0_from'], range_dic['g0_from'], range_dic['r0_from'],
-                                 range_dic['b0_to'], range_dic['g0_to'], range_dic['r0_to'],
-                                 )
-                # range_exe1 (2nd) #
-                if range_exe1:
-                    print('range_exe1 = True.')
-                    img = mask_image(img,
-                                     range_dic['b1_from'], range_dic['g1_from'], range_dic['r1_from'],
-                                     range_dic['b1_to'], range_dic['g1_to'], range_dic['r1_to'],
-                                     )
+                                 range_dic['b_lower'], range_dic['g_lower'], range_dic['r_lower'],
+                                 range_dic['b_upper'], range_dic['g_upper'], range_dic['r_upper'],
+                                 range_dic['b_out'], range_dic['g_out'], range_dic['r_out'], range_dic['alpha_out']
+                                )
+                # # range_exe1 (2nd) #
+                # if range_exe1:
+                #     print('range_exe1 = True.')
+                #     img = mask_image(img,
+                #                      range_dic['b1_from'], range_dic['g1_from'], range_dic['r1_from'],
+                #                      range_dic['b1_to'], range_dic['g1_to'], range_dic['r1_to'],
+                #                      range_dic['b_out'], range_dic['g_out'], range_dic['r_out'], range_dic['alpha_out']
+                #                      )
             # SAVE #
             cv.imwrite(path + '/' + f.split('.')[0] + '_' + strftime('%H%M%S') + output, img)
             print('cv.imwrite() done!! Output:', path + '/' + f.split('.')[0] + output)

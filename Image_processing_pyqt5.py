@@ -2,8 +2,9 @@
 2021/12/31 Properties: "size/page_sel" were added to pdf2image. "add_image" launched.
 2021/01/04 "Qsettings" synced. "imshow" added (image2image). "INPUT/OUTPUT" radio button added (image2image).
 2021/01/08 "q_jpg" added (image2image). saved_info added (image_processing_GUI.py).
-2022.09.19 Load ini file.
-2023.01.28 tuple error fixed
+2022/09/19 Load ini file.
+2023/01/28 Tuple error fixed.
+2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger
 
 """
 
@@ -63,11 +64,9 @@ class MainWindow(qtw.QWidget):
     point_exe1 = settings.value('point_exe1', False, type=bool)
     b1, g1, r1 = settings.value('b1', type=int), settings.value('g1', type=int), settings.value('r1', type=int)
     range_exe0 = settings.value('range_exe0', False, type=bool)
-    b0_from, g0_from, r0_from = settings.value('b0_from', type=int), settings.value('g0_from', type=int), settings.value('r0_from', type=int)
-    b0_to, g0_to, r0_to = settings.value('b0_to', type=int), settings.value('g0_to', type=int), settings.value('r0_to', type=int)
-    range_exe1 = settings.value('range_exe1', False, type=bool)
-    b1_from, g1_from, r1_from = settings.value('b1_from', type=int), settings.value('g1_from', type=int), settings.value('r1_from', type=int)
-    b1_to, g1_to, r1_to = settings.value('b1_to', type=int), settings.value('g1_to', type=int), settings.value('r1_to', type=int)
+    b_lower, g_lower, r_lower = settings.value('b_lower', type=int), settings.value('g_lower', type=int), settings.value('r_lower', type=int)
+    b_upper, g_upper, r_upper = settings.value('b_upper', type=int), settings.value('g_upper', type=int), settings.value('r_upper', type=int)
+    b_out, g_out, r_out, alpha_out = settings.value('b_out', type=int), settings.value('g_out', type=int), settings.value('r_out', type=int), settings.value('alpha_out', type=int)
     imshow = settings.value('imshow', False, type=bool)
     q_jpg = settings.value('q_jpg', type=int)
 
@@ -78,7 +77,7 @@ class MainWindow(qtw.QWidget):
 
         # Configure the window -------------------------------------------------------
         self.setWindowTitle('IMAGE PROCESSING APP')
-        self.resize(800, 600)
+        # self.resize(600, 600)
 
         # Create widgets -------------------------------------------------------------
         # ---- #
@@ -97,29 +96,14 @@ class MainWindow(qtw.QWidget):
         self.size0_spn = qtw.QSpinBox(self, value=self.size0, maximum=9999, minimum=9, singleStep=10)
         self.size1_spn = qtw.QSpinBox(self, value=self.size1, maximum=9999, minimum=9, singleStep=10)
         self.thread_spn = qtw.QSpinBox(self, value=self.thread, maximum=8, minimum=1)
-        self.pdf2image_btn = qtw.QPushButton(
-            'pdf2image',
-            clicked=self.pdf2image_exe
-        )
-        self.pdf2image_dir_btn = qtw.QPushButton(
-            'pdf2image_dir',
-            clicked=self.pdf2image_dir_exe
-        )
-        self.add_image_tif_btn = qtw.QPushButton(
-            'add_image_tif',
-            clicked=self.add_image_tif_exe
-        )
-        self.add_BefAft_btn = qtw.QPushButton(
-            'add_BefAft',
-            clicked=self.add_BefAft_exe
-        )
+        self.pdf2image_btn = qtw.QPushButton('pdf2image', clicked=self.pdf2image_exe)
+        self.pdf2image_dir_btn = qtw.QPushButton('pdf2image_dir', clicked=self.pdf2image_dir_exe)
+        self.add_image_tif_btn = qtw.QPushButton('add_image_tif', clicked=self.add_image_tif_exe)
+        self.add_BefAft_btn = qtw.QPushButton('add_BefAft', clicked=self.add_BefAft_exe)
         # ---- #
         # tab1 #
         self.path1_ent = qtw.QLineEdit(self.path1, self, maxLength=99, placeholderText='Enter file path...')
-        self.image2image_btn = qtw.QPushButton(
-            'image2image',
-            clicked=self.image2image_exe
-        )
+        self.image2image_btn = qtw.QPushButton('image2image', clicked=self.image2image_exe)
         self.in_tif_rad = qtw.QRadioButton('.tif')
         self.in_png_rad = qtw.QRadioButton('.png')
         self.in_jpg_rad = qtw.QRadioButton('.jpg')
@@ -137,19 +121,16 @@ class MainWindow(qtw.QWidget):
         self.g1_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
         self.r1_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
         self.range_exe0_chk = qtw.QCheckBox('Execute', self)
-        self.b0_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.g0_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.r0_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.b0_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.g0_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.r0_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.range_exe1_chk = qtw.QCheckBox('Execute', self)
-        self.b1_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.g1_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.r1_from_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.b1_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.g1_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
-        self.r1_to_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.b_lower_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.g_lower_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.r_lower_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.b_upper_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.g_upper_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.r_upper_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.b_out_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.g_out_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.r_out_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.alpha_out_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
         self.imshow_chk = qtw.QCheckBox('imshow', self)
         self.q_jpg_spn = qtw.QSpinBox(self, value=100, minimum=1, maximum=100)
 
@@ -177,8 +158,11 @@ class MainWindow(qtw.QWidget):
         # ---- #
         # tab0 #
         self.tab0.layout = qtw.QVBoxLayout()
-        self.tab0.layout.addWidget(qtw.QLabel('Image_processing_functions.py\n'
-                                              'Image_processing_GUI.py'))
+        self.tab0.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5 v01.01.00</b><br>'
+                                              'Image_processing_pyqt5.py<br>'
+                                              'Image_processing_functions.py'
+                                              )
+                                   )
         # Execute box #
         execute_form = qtw.QGroupBox('Execute')
         self.tab0.layout.addWidget(execute_form)
@@ -187,16 +171,16 @@ class MainWindow(qtw.QWidget):
         execute_form_layout.addWidget(qtw.QLabel('# execute_form', self), 1, 1, 1, 10)
         execute_form_layout.addWidget(self.pdf2image_btn, 2, 1, 1, 1)
         execute_form_layout.addWidget(qtw.QLabel(
-            '<b># pdf2image()</b> :pdf -> image (jpg/png/tif). Be careful with "grayscale" checkbox.', self), 2, 2, 1, 1)
+            ': pdf -> image (jpg/png/tif). Be careful with "grayscale" checkbox.', self), 2, 2, 1, 1)
         execute_form_layout.addWidget(self.pdf2image_dir_btn, 3, 1, 1, 1)
         execute_form_layout.addWidget(qtw.QLabel(
-            '<b># pdf2image_dir()</b> :Convert all the pdf files to images (jpg/png/tif) in the path.', self), 3, 2, 1, 1)
+            ': Convert all the pdf files to images in the directory (jpg/png/tif).', self), 3, 2, 1, 1)
         execute_form_layout.addWidget(self.add_image_tif_btn, 4, 1, 1, 1)
         execute_form_layout.addWidget(qtw.QLabel(
-            '<b># add_image_tif()</b> :Add filename1 on filename0 (tif -> tif).', self), 4, 2, 1, 1)
+            ': Add filename1 on filename0 (tif -> tif).', self), 4, 2, 1, 1)
         execute_form_layout.addWidget(self.add_BefAft_btn, 5, 1, 1, 1)
         execute_form_layout.addWidget(qtw.QLabel(
-            '<b># add_BefAft()</b> :Add filename1 on filename0 (tif -> tif). Previous: Cyan. Changed: Magenta', self), 5, 2, 1, 1)
+            ': Add filename1 on filename0 (tif -> tif). Previous: Cyan. Changed: Magenta', self), 5, 2, 1, 1)
         # Set GridLayout to execute_form_layout
         execute_form.setLayout(execute_form_layout)
 
@@ -253,8 +237,11 @@ class MainWindow(qtw.QWidget):
         # ---- #
         # tab1 #
         self.tab1.layout = qtw.QVBoxLayout()
-        self.tab1.layout.addWidget(qtw.QLabel('Image_processing_functions.py\n'
-                                              'Image_processing_GUI.py'))
+        self.tab1.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5 v01.01.00</b><br>'
+                                              'Image_processing_pyqt5.py<br>'
+                                              'Image_processing_functions.py'
+                                              )
+                                   )
         # Set tab1.layout
         self.tab1.setLayout(self.tab1.layout)
 
@@ -332,39 +319,33 @@ class MainWindow(qtw.QWidget):
         range_form_layout = qtw.QGridLayout()
         # qtw.addWidget(self, row, column, row span, column span)
         # range_exe0
-        range_form_layout.addWidget(qtw.QLabel('# range_form\nMake selected color transparent. \nOnly works for output: .png/.tif.', self),
+        range_form_layout.addWidget(qtw.QLabel('# Make selected color channel to arbitrary color. Only works for output: .png/.tif.', self),
                                        1, 1, 1, 10)
         range_form_layout.addWidget(self.range_exe0_chk, 2, 1, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('from', self, alignment=qtc.Qt.AlignRight), 2, 2, 1, 1)
-        range_form_layout.addWidget(self.b0_from_spn, 2, 3, 1, 1)
+        range_form_layout.addWidget(qtw.QLabel('<lower>', self, alignment=qtc.Qt.AlignRight), 2, 2, 1, 1)
+        range_form_layout.addWidget(self.b_lower_spn, 2, 3, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('B', self), 2, 4, 1, 1)
-        range_form_layout.addWidget(self.g0_from_spn, 2, 5, 1, 1)
+        range_form_layout.addWidget(self.g_lower_spn, 2, 5, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('G', self), 2, 6, 1, 1)
-        range_form_layout.addWidget(self.r0_from_spn, 2, 7, 1, 1)
+        range_form_layout.addWidget(self.r_lower_spn, 2, 7, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('R', self), 2, 8, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('to', self, alignment=qtc.Qt.AlignRight), 3, 2, 1, 1)
-        range_form_layout.addWidget(self.b0_to_spn, 3, 3, 1, 1)
+        range_form_layout.addWidget(qtw.QLabel('<upper>', self, alignment=qtc.Qt.AlignRight), 3, 2, 1, 1)
+        range_form_layout.addWidget(self.b_upper_spn, 3, 3, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('B', self), 3, 4, 1, 1)
-        range_form_layout.addWidget(self.g0_to_spn, 3, 5, 1, 1)
+        range_form_layout.addWidget(self.g_upper_spn, 3, 5, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('G', self), 3, 6, 1, 1)
-        range_form_layout.addWidget(self.r0_to_spn, 3, 7, 1, 1)
+        range_form_layout.addWidget(self.r_upper_spn, 3, 7, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('R', self), 3, 8, 1, 1)
-        # range_exe1
-        range_form_layout.addWidget(self.range_exe1_chk, 4, 1, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('from', self, alignment=qtc.Qt.AlignRight), 4, 2, 1, 1)
-        range_form_layout.addWidget(self.b1_from_spn, 4, 3, 1, 1)
+        range_form_layout.addWidget(qtw.QLabel('<out> ', self, alignment=qtc.Qt.AlignRight), 4, 2, 1, 1)
+        range_form_layout.addWidget(self.b_out_spn, 4, 3, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('B', self), 4, 4, 1, 1)
-        range_form_layout.addWidget(self.g1_from_spn, 4, 5, 1, 1)
+        range_form_layout.addWidget(self.g_out_spn, 4, 5, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('G', self), 4, 6, 1, 1)
-        range_form_layout.addWidget(self.r1_from_spn, 4, 7, 1, 1)
+        range_form_layout.addWidget(self.r_out_spn, 4, 7, 1, 1)
         range_form_layout.addWidget(qtw.QLabel('R', self), 4, 8, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('to', self, alignment=qtc.Qt.AlignRight), 5, 2, 1, 1)
-        range_form_layout.addWidget(self.b1_to_spn, 5, 3, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('B', self), 5, 4, 1, 1)
-        range_form_layout.addWidget(self.g1_to_spn, 5, 5, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('G', self), 5, 6, 1, 1)
-        range_form_layout.addWidget(self.r1_to_spn, 5, 7, 1, 1)
-        range_form_layout.addWidget(qtw.QLabel('R', self), 5, 8, 1, 1)
+        range_form_layout.addWidget(self.alpha_out_spn, 4, 9, 1, 1)
+        range_form_layout.addWidget(qtw.QLabel('alpha', self), 4, 10, 1, 1)
+
         # Set range_form_layout to range_form
         range_form.setLayout(range_form_layout)
 
@@ -412,19 +393,16 @@ class MainWindow(qtw.QWidget):
             self.g1_spn.setValue(self.g1)
             self.r1_spn.setValue(self.r1)
             self.range_exe0_chk.setChecked(self.range_exe0)
-            self.b0_from_spn.setValue(self.b0_from)
-            self.g0_from_spn.setValue(self.g0_from)
-            self.r0_from_spn.setValue(self.r0_from)
-            self.b0_to_spn.setValue(self.b0_to)
-            self.g0_to_spn.setValue(self.g0_to)
-            self.r0_to_spn.setValue(self.r0_to)
-            self.range_exe1_chk.setChecked(self.range_exe1)
-            self.b1_from_spn.setValue(self.b1_from)
-            self.g1_from_spn.setValue(self.g1_from)
-            self.r1_from_spn.setValue(self.r1_from)
-            self.b1_to_spn.setValue(self.b1_to)
-            self.g1_to_spn.setValue(self.g1_to)
-            self.r1_to_spn.setValue(self.r1_to)
+            self.b_lower_spn.setValue(self.b_lower)
+            self.g_lower_spn.setValue(self.g_lower)
+            self.r_lower_spn.setValue(self.r_lower)
+            self.b_upper_spn.setValue(self.b_upper)
+            self.g_upper_spn.setValue(self.g_upper)
+            self.r_upper_spn.setValue(self.r_upper)
+            self.b_out_spn.setValue(self.b_out)
+            self.g_out_spn.setValue(self.g_out)
+            self.r_out_spn.setValue(self.r_out)
+            self.alpha_out_spn.setValue(self.alpha_out)
             self.imshow_chk.setChecked(self.imshow)
             self.q_jpg_spn.setValue(self.q_jpg)
         # Set tabs to main_layout ------------------------------------------------------
@@ -495,19 +473,16 @@ class MainWindow(qtw.QWidget):
             self.point_dic['g1'] = self.g1_spn.value()
             self.point_dic['r1'] = self.r1_spn.value()
         if self.range_exe0_chk:
-            self.range_dic['b0_from'] = self.b0_from_spn.value()
-            self.range_dic['g0_from'] = self.g0_from_spn.value()
-            self.range_dic['r0_from'] = self.r0_from_spn.value()
-            self.range_dic['b0_to'] = self.b0_to_spn.value()
-            self.range_dic['g0_to'] = self.g0_to_spn.value()
-            self.range_dic['r0_to'] = self.r0_to_spn.value()
-        if self.range_exe1_chk:
-            self.range_dic['b1_from'] = self.b1_from_spn.value()
-            self.range_dic['g1_from'] = self.g1_from_spn.value()
-            self.range_dic['r1_from'] = self.r1_from_spn.value()
-            self.range_dic['b1_to'] = self.b1_to_spn.value()
-            self.range_dic['g1_to'] = self.g1_to_spn.value()
-            self.range_dic['r1_to'] = self.r1_to_spn.value()
+            self.range_dic['b_lower'] = self.b_lower_spn.value()
+            self.range_dic['g_lower'] = self.g_lower_spn.value()
+            self.range_dic['r_lower'] = self.r_lower_spn.value()
+            self.range_dic['b_upper'] = self.b_upper_spn.value()
+            self.range_dic['g_upper'] = self.g_upper_spn.value()
+            self.range_dic['r_upper'] = self.r_upper_spn.value()
+            self.range_dic['b_out'] = self.b_out_spn.value()
+            self.range_dic['g_out'] = self.g_out_spn.value()
+            self.range_dic['r_out'] = self.r_out_spn.value()
+            self.range_dic['alpha_out'] = self.alpha_out_spn.value()
         # INPUT file format
         if self.in_tif_rad.isChecked():
             input = '.tif'
@@ -537,7 +512,6 @@ class MainWindow(qtw.QWidget):
             point_exe0=self.point_exe0_chk.isChecked(),
             point_exe1=self.point_exe1_chk.isChecked(),
             range_exe0=self.range_exe0_chk.isChecked(),
-            range_exe1=self.range_exe1_chk.isChecked(),
             input=input,
             output=output,
             point_dic=self.point_dic,
@@ -547,6 +521,7 @@ class MainWindow(qtw.QWidget):
         )
 
 
+    # ALL #
     def closeEvent(self, e):
         self.saveSettings()
 
@@ -589,19 +564,16 @@ class MainWindow(qtw.QWidget):
         self.settings.setValue('g1', self.g1_spn.value())
         self.settings.setValue('r1', self.r1_spn.value())
         self.settings.setValue('range_exe0', self.range_exe0_chk.isChecked())
-        self.settings.setValue('b0_from', self.b0_from_spn.value())
-        self.settings.setValue('g0_from', self.g0_from_spn.value())
-        self.settings.setValue('r0_from', self.r0_from_spn.value())
-        self.settings.setValue('b0_to', self.b0_to_spn.value())
-        self.settings.setValue('g0_to', self.g0_to_spn.value())
-        self.settings.setValue('r0_to', self.r0_to_spn.value())
-        self.settings.setValue('range_exe1', self.range_exe1_chk.isChecked())
-        self.settings.setValue('b1_from', self.b1_from_spn.value())
-        self.settings.setValue('g1_from', self.g1_from_spn.value())
-        self.settings.setValue('r1_from', self.r1_from_spn.value())
-        self.settings.setValue('b1_to', self.b1_to_spn.value())
-        self.settings.setValue('g1_to', self.g1_to_spn.value())
-        self.settings.setValue('r1_to', self.r1_to_spn.value())
+        self.settings.setValue('b_lower', self.b_lower_spn.value())
+        self.settings.setValue('g_lower', self.g_lower_spn.value())
+        self.settings.setValue('r_lower', self.r_lower_spn.value())
+        self.settings.setValue('b_upper', self.b_upper_spn.value())
+        self.settings.setValue('g_upper', self.g_upper_spn.value())
+        self.settings.setValue('r_upper', self.r_upper_spn.value())
+        self.settings.setValue('b_out', self.b_out_spn.value())
+        self.settings.setValue('g_out', self.g_out_spn.value())
+        self.settings.setValue('r_out', self.r_out_spn.value())
+        self.settings.setValue('alpha_out', self.alpha_out_spn.value())
         self.settings.setValue('imshow', self.imshow_chk.isChecked())
         self.settings.setValue('q_jpg', self.q_jpg_spn.value())
 
