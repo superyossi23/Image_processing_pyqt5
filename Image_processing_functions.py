@@ -1,12 +1,4 @@
 """
-2021/12/31 Properties: size/page_sel were added (pdf2image).
-2022/01/02 image2image launched.
-2022/01/04 imshow added (image2image).
-2022/01/08 "q_jpg" added (image2image).
-2022/02/12 Upper letter format enabled (e.g. PNG).
-2023/01/31 tuple error fixed
-2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger
-
 def Debugger: Decorator function. Print process time and func name.
 def image_output: Outputs image. Works in .tif/.png/.jpg.
 def pdf2image: Convert a PDF to IMAGEs. Works in .tif/.png/.jpg.
@@ -17,10 +9,12 @@ def add_image_tif: Add an img1 to an img0 (multi-frame TIFF ver.).
 def add_BefAft: Add an img1 to an img0 (Add Before/After with different color). Only works in .tif.
 def image2pdf: Convert image to pdf file.
 def image2image: Convert images to images. Works in .tif/.png/.jpg/.bmp.
+
 """
 import inspect
 import sys
 
+import cv2
 import numpy as np
 from PIL import Image
 from pdf2image import convert_from_path
@@ -256,7 +250,10 @@ def add_image(
         filename1, # pdf
         format=format,
         grayscale=False,
-        coloring=0
+        coloring=0,
+        b=0,
+        g=0,
+        r=255
 ):
     """
     Add img1 on img0
@@ -294,20 +291,21 @@ def add_image(
     else:
         # Error handling. In case of gray image input.
         if len(img1.shape) == 3:
-            img0gray = cv.cvtColor(img0, cv.COLOR_BGR2GRAY)
+            # img0
+            lower = (240, 240, 240)
+            upper = (255, 255, 255)
+            mask0 = cv2.inRange(img0, lower, upper)
+            # img1
             img1gray = cv.cvtColor(img1, cv.COLOR_BGR2GRAY)
-            ret0, mask0 = cv.threshold(img0gray, 240, 255, cv.THRESH_BINARY)  # white -> out
             ret1, mask1 = cv.threshold(img1gray, 240, 255, cv.THRESH_BINARY)  # white -> out
             rows, cols, channels = img1.shape
         else:
             print('Something is wrong with img1.shape!! Select grayscale checked')
 
-    # Background Color (0) to White (255)
-    roi[:, :, :] = 255
-    # White to Color (mask region only)  # Color select is here
-    roi[:, :, coloring] = mask0  # 0:yellow/1:magenta/2:cyan
-    # White-out the BG in ROI
-    img1_on_img0 = cv.bitwise_and(roi, roi, mask=mask1)
+    # img0 to selected color
+    img0[mask0 == 0] = [b, g, r]
+    # Resulting added image
+    img1_on_img0 = cv.bitwise_and(img0, img0, mask=mask1)
 
     # OUTPUT
     print('Output:', path + '/' + out_filename + format)
@@ -321,7 +319,9 @@ def add_image_tif(
         filename0,  # tiff, filename0 must be bigger than filename1 (pixel size)
         filename1, # tiff
         grayscale=True,
-        coloring=0
+        b=0,
+        g=0,
+        r=255
 ):
     """
     Add img1 on img0. img0 is changed to color:cyan.
@@ -329,7 +329,9 @@ def add_image_tif(
     :param filename0:
     :param filename1:
     :param grayscale: True/False. True if input image is.
-    :param coloring: Coloring to appeal difference. 0:blue/1:green/2:red.
+    :param b: Blue (ch0) value
+    :param g: Green (ch1) value
+    :param r: Red (ch2) value
     :return: imgs0
     """
     print('** Execute add_image_tif() **')
@@ -361,8 +363,8 @@ def add_image_tif(
         if grayscale:
             print('grayscale = True')
             # Threshold select for transparent region
-            ret0, mask0 = cv.threshold(img0, 240, 255, cv.THRESH_BINARY)  # white -> out
-            ret1, mask1 = cv.threshold(img1, 240, 255, cv.THRESH_BINARY)  # white -> out
+            ret0, mask0 = cv.threshold(img0, 240, 255, cv.THRESH_BINARY)  # threshold to 255
+            ret1, mask1 = cv.threshold(img1, 240, 255, cv.THRESH_BINARY)  # threshold to 255
             # Error handling. In case of color image input.
             if len(img1.shape) == 2:
                 rows, cols = img1.shape
@@ -371,29 +373,22 @@ def add_image_tif(
         else:
             # Error handling. In case of gray image input.
             if len(img1.shape) == 3:
-                img0gray = cv.cvtColor(img0, cv.COLOR_BGR2GRAY)
+                # img0
+                lower = (240, 240, 240)
+                upper = (255, 255, 255)
+                mask0 = cv2.inRange(img0, lower, upper)
+                # img1
                 img1gray = cv.cvtColor(img1, cv.COLOR_BGR2GRAY)
-                ret0, mask0 = cv.threshold(img0gray, 240, 255, cv.THRESH_BINARY)  # white -> out
-                ret1, mask1 = cv.threshold(img1gray, 240, 255, cv.THRESH_BINARY)  # white -> out
+                ret1, mask1 = cv.threshold(img1gray, 240, 255, cv.THRESH_BINARY)  # threshold to 255
                 rows, cols, channels = img1.shape
             else:
                 print('** Something is wrong with img1.shape!! Select grayscale checked **')
 
-        # Background Color (0) to White (255)
-        roi[:, :, 0:] = 255
-        # White to Color (mask region only)  # Color select is here
-        roi[:, :, coloring] = mask0  # 0:yellow/1:magenta/2:cyan
-        # White-out the BG in ROI
-        img1_on_img0 = cv.bitwise_and(roi, roi, mask=mask1)
-        # Turned out to be unnecessary lines ---------------
-        # img0_bg = cv.bitwise_and(roi, roi, mask=mask1)
-        # Take only region of Mask from img1
-        # mask_inv = cv.bitwise_not(mask1)
-        # img1_fg = cv.bitwise_and(img1, img1, mask=mask_inv)
-        # Put img1 in ROI and modify the img0
-        # dst = cv.add(img0_bg, img1_fg)  # ROI
-        # img0[0:rows, 0:cols] = dst  # Full Image
-        # --------------------------------------------------
+        # img0 to selected color
+        img0[mask0 == 0] = [b, g, r]
+        # Resulting added image
+        img1_on_img0 = cv.bitwise_and(img0, img0, mask=mask1)
+        # Add img to list
         imgs0_l[cnt] = img1_on_img0
         cnt += 1
 
@@ -408,7 +403,13 @@ def add_BefAft(
         path: str,
         filename0,  # tif, !filename0 must be bigger than filename1 (pixel size)
         filename1,  # tif
-        grayscale=False
+        grayscale=False,
+        b2=255,
+        g2=0,
+        r2=0,
+        b3=0,
+        g3=0,
+        r3=255
 ):
     print('** Execute add_BefAft() **')
     print('locals():\n', locals())
@@ -419,14 +420,18 @@ def add_BefAft(
                   filename0=filename0,  # tiff, !filename0 must be bigger than filename1 (pixel size)
                   filename1=filename1,  # tiff
                   grayscale=grayscale,
-                  coloring=2  # 2:cyan
+                  b=b2,
+                  g=g2,
+                  r=r2,
     )
     print('Execute add_image_tif() #2 : filename0 on filename1')
     add_image_tif(path=path,
                   filename0=filename1,  # tiff, !filename0 must be bigger than filename1 (pixel size)
                   filename1=filename0,  # tiff
                   grayscale=grayscale,
-                  coloring=1  # 1:magenta
+                  b=b3,
+                  g=g3,
+                  r=r3,
     )
     # Create .tif name
     f0 = '{} on {}.tif'.format(filename0, filename1)

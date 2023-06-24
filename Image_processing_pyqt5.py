@@ -5,6 +5,8 @@
 2022/09/19 Load ini file.
 2023/01/28 Tuple error fixed.
 2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger
+2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger. v01.01.00
+2023/06/24 Add BGR spin box for add_image_tif (b2,g2,r2,b3,g3,r3). v01.01.01
 
 """
 
@@ -18,6 +20,7 @@ from Image_processing_functions import *
 # INITIAL SETTINGS #
 # True: Load QSettings info.
 saved_info = True
+ver = 'v01.01.01'
 
 
 class MainWindow(qtw.QWidget):
@@ -38,6 +41,8 @@ class MainWindow(qtw.QWidget):
     filename = settings.value('filename', type=str)
     filename0 = settings.value('filename0', type=str)
     filename1 = settings.value('filename1', type=str)
+    b2, g2, r2 = settings.value('b2', type=int), settings.value('g2', type=int), settings.value('r3', type=int)
+    b3, g3, r3 = settings.value('b3', type=int), settings.value('g3', type=int), settings.value('r3', type=int)
     grayscale = settings.value('grayscale', False, type=bool)
     page_off = settings.value('page_off', False, type=bool)
     page_sel0 = settings.value('page_sel0', False, type=bool)
@@ -76,7 +81,7 @@ class MainWindow(qtw.QWidget):
         super().__init__()
 
         # Configure the window -------------------------------------------------------
-        self.setWindowTitle('IMAGE PROCESSING APP')
+        self.setWindowTitle('IMAGE PROCESSING APP ' + ver)
         # self.resize(600, 600)
 
         # Create widgets -------------------------------------------------------------
@@ -88,6 +93,12 @@ class MainWindow(qtw.QWidget):
         self.filename_ent = qtw.QLineEdit(self.filename, self, placeholderText='Enter filename...')
         self.filename0_ent = qtw.QLineEdit(self.filename0, self, placeholderText='Enter filename...')
         self.filename1_ent = qtw.QLineEdit(self.filename1, self, placeholderText='Enter filename...')
+        self.b2_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.g2_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.r2_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.b3_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.g3_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
+        self.r3_spn = qtw.QSpinBox(self, minimum=0, maximum=255)
         self.grayscale_chk = qtw.QCheckBox('grayscale', self)
         self.page_off_chk = qtw.QCheckBox('page_off', self)
         self.page_sel0_spn = qtw.QSpinBox(self, value=self.page_sel0)
@@ -158,9 +169,9 @@ class MainWindow(qtw.QWidget):
         # ---- #
         # tab0 #
         self.tab0.layout = qtw.QVBoxLayout()
-        self.tab0.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5 v01.01.00</b><br>'
-                                              'Image_processing_pyqt5.py<br>'
-                                              'Image_processing_functions.py'
+        self.tab0.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5</b><br>'
+                                              ' |- Image_processing_pyqt5.py<br>'
+                                              ' |- Image_processing_functions.py'
                                               )
                                    )
         # Execute box #
@@ -190,18 +201,28 @@ class MainWindow(qtw.QWidget):
         # settings_form_layout
         settings_form_layout = qtw.QGridLayout()
         settings_form_layout.addWidget(qtw.QLabel('# settings_form', self), 1, 1, 1, 10)
-        settings_form_layout.addWidget(self.path0_ent, 2, 1, 1, 9)  # (row, column, row span, column span)
-        settings_form_layout.addWidget(qtw.QLabel('<b># path0</b>', self), 2, 10, 1, 1)
-        settings_form_layout.addWidget(self.dpi_spn, 3, 1, 1, 1)
-        settings_form_layout.addWidget(qtw.QLabel('<b># dpi</b>', self), 3, 2, 1, 1)
-        settings_form_layout.addWidget(self.format_cmb, 3, 3, 1, 1)
-        settings_form_layout.addWidget(qtw.QLabel('<b># format</b>', self), 3, 4, 1, 1)
+        settings_form_layout.addWidget(self.path0_ent, 2, 1, 1, 5)  # (row, column, row span, column span)
+        settings_form_layout.addWidget(qtw.QLabel('<b># path0</b>', self), 2, 6, 1, 1)
+        settings_form_layout.addWidget(self.dpi_spn, 2, 7, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel('<b># dpi</b>', self), 2, 8, 1, 1)
+        settings_form_layout.addWidget(self.format_cmb, 2, 9, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel('<b># format</b>', self), 2, 10, 1, 1)
         settings_form_layout.addWidget(self.filename_ent, 5, 1, 1, 3)
-        settings_form_layout.addWidget(qtw.QLabel('<b># filename</b> :filename used for pdf2image', self), 5, 4, 1, 3)
+        settings_form_layout.addWidget(qtw.QLabel('<b># filename</b> :filename used for pdf2image', self), 5, 4, 1, 4)
         settings_form_layout.addWidget(self.filename0_ent, 6, 1, 1, 3)
-        settings_form_layout.addWidget(qtw.QLabel('<b># filename0</b>', self), 6, 4, 1, 1)
-        settings_form_layout.addWidget(self.filename1_ent, 6, 5, 1, 3)
-        settings_form_layout.addWidget(qtw.QLabel('<b># filename1</b>', self), 6, 8, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel('<b># filename0</b>', self), 6, 4, 1, 2)
+        settings_form_layout.addWidget(self.filename1_ent, 6, 6, 1, 3)
+        settings_form_layout.addWidget(qtw.QLabel('<b># filename1</b>', self), 6, 9, 1, 2)
+        settings_form_layout.addWidget(self.b2_spn, 8, 1, 1, 1)
+        settings_form_layout.addWidget(self.g2_spn, 8, 2, 1, 1)
+        settings_form_layout.addWidget(self.r2_spn, 8, 3, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel('BGR', self), 8, 4, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel(' --->', self), 8, 5, 1, 1)
+        settings_form_layout.addWidget(self.b3_spn, 8, 6, 1, 1)
+        settings_form_layout.addWidget(self.g3_spn, 8, 7, 1, 1)
+        settings_form_layout.addWidget(self.r3_spn, 8, 8, 1, 1)
+        settings_form_layout.addWidget(qtw.QLabel('BGR', self), 8, 9, 1, 1)
+
         # Set GridLayout to settings_form_layout
         settings_form.setLayout(settings_form_layout)
 
@@ -237,9 +258,9 @@ class MainWindow(qtw.QWidget):
         # ---- #
         # tab1 #
         self.tab1.layout = qtw.QVBoxLayout()
-        self.tab1.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5 v01.01.00</b><br>'
-                                              'Image_processing_pyqt5.py<br>'
-                                              'Image_processing_functions.py'
+        self.tab1.layout.addWidget(qtw.QLabel('<b>Image_processing_pyqt5</b><br>'
+                                              ' |- Image_processing_pyqt5.py<br>'
+                                              ' |- Image_processing_functions.py'
                                               )
                                    )
         # Set tab1.layout
@@ -365,6 +386,12 @@ class MainWindow(qtw.QWidget):
             # tab0 #
             self.dpi_spn.setValue(self.dpi)
             self.format_cmb.setCurrentText(self.format)
+            self.b2_spn.setValue(self.b2)
+            self.g2_spn.setValue(self.g2)
+            self.r2_spn.setValue(self.r2)
+            self.b3_spn.setValue(self.b3)
+            self.g3_spn.setValue(self.g3)
+            self.r3_spn.setValue(self.r3)
             self.grayscale_chk.setChecked(self.grayscale)
             self.page_off_chk.setChecked(self.page_off)
             self.page_sel0_spn.setValue(self.page_sel0)
@@ -449,7 +476,10 @@ class MainWindow(qtw.QWidget):
             path=self.path0_ent.text(),
             filename0=self.filename0_ent.text(),
             filename1=self.filename1_ent.text(),
-            grayscale=self.grayscale_chk.isChecked()
+            grayscale=self.grayscale_chk.isChecked(),
+            b3=self.b3_spn.value(),
+            g3=self.g3_spn.value(),
+            r3=self.r3_spn.value(),
         )
 
     def add_BefAft_exe(self):
@@ -536,6 +566,12 @@ class MainWindow(qtw.QWidget):
         self.settings.setValue('filename', self.filename_ent.text())
         self.settings.setValue('filename0', self.filename0_ent.text())
         self.settings.setValue('filename1', self.filename1_ent.text())
+        self.settings.setValue('b2', self.b2_spn.value())
+        self.settings.setValue('g2', self.g2_spn.value())
+        self.settings.setValue('r2', self.r2_spn.value())
+        self.settings.setValue('b3', self.b3_spn.value())
+        self.settings.setValue('g3', self.g3_spn.value())
+        self.settings.setValue('r3', self.r3_spn.value())
         self.settings.setValue('grayscale', self.grayscale_chk.isChecked())
         self.settings.setValue('page_off', self.page_off_chk.isChecked())
         self.settings.setValue('page_sel0', self.page_sel0_spn.value())
