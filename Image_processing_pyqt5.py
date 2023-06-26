@@ -5,8 +5,9 @@
 2022/09/19 Load ini file.
 2023/01/28 Tuple error fixed.
 2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger
-2023/06/14 Add b_out, g_out, r_out, alpha_out and Debugger. v01.01.00
-2023/06/24 Add BGR spin box for add_image_tif (b2,g2,r2,b3,g3,r3). v01.01.01
+2023/06/14 v01.01.00. Add b_out, g_out, r_out, alpha_out and Debugger.
+2023/06/24 v01.01.01. Add BGR spin box for add_image_tif (b2,g2,r2,b3,g3,r3).
+2023/06/27 v01.01.02. Fixed color bug (add_image_tif). Added output folder (add_image_tif).
 
 """
 
@@ -20,7 +21,7 @@ from Image_processing_functions import *
 # INITIAL SETTINGS #
 # True: Load QSettings info.
 saved_info = True
-ver = 'v01.01.01'
+ver = 'v01.01.02'
 
 
 class MainWindow(qtw.QWidget):
@@ -477,9 +478,9 @@ class MainWindow(qtw.QWidget):
             filename0=self.filename0_ent.text(),
             filename1=self.filename1_ent.text(),
             grayscale=self.grayscale_chk.isChecked(),
-            b3=self.b3_spn.value(),
-            g3=self.g3_spn.value(),
-            r3=self.r3_spn.value(),
+            b=self.b3_spn.value(),
+            g=self.g3_spn.value(),
+            r=self.r3_spn.value(),
         )
 
     def add_BefAft_exe(self):
@@ -487,7 +488,13 @@ class MainWindow(qtw.QWidget):
             path=self.path0_ent.text(),
             filename0=self.filename0_ent.text(),
             filename1=self.filename1_ent.text(),
-            grayscale=self.grayscale_chk.isChecked()
+            grayscale=self.grayscale_chk.isChecked(),
+            b2=self.b2_spn.value(),
+            g2=self.g2_spn.value(),
+            r2=self.r2_spn.value(),
+            b3=self.b3_spn.value(),
+            g3=self.g3_spn.value(),
+            r3=self.r3_spn.value(),
         )
 
     # ---- #

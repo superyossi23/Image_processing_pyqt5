@@ -337,6 +337,13 @@ def add_image_tif(
     print('** Execute add_image_tif() **')
     print('locals():\n', locals())
 
+    # Create ppm dir
+    output = path+'/output'
+    # Create dir if path does not exist
+    if not os.path.exists(output):
+        os.mkdir(output)
+        print(path, 'created')
+
     path = path.replace('\\', '/')
     # Create .tif name
     f0 = filename0 + '.tif'
@@ -393,8 +400,8 @@ def add_image_tif(
         cnt += 1
 
     # Output #
-    print('Output: ', path + '/' + out_filename + '.tif')
-    saveTiffStack(save_path=path + '/' + out_filename + '.tif', imgs=imgs0_l)
+    print('Output: ', path + '/output/' + out_filename + '.tif')
+    saveTiffStack(save_path=path + '/output/' + out_filename + '.tif', imgs=imgs0_l)
     print('add_image_tiff() done!!')
 
 
@@ -434,11 +441,11 @@ def add_BefAft(
                   r=r3,
     )
     # Create .tif name
-    f0 = '{} on {}.tif'.format(filename0, filename1)
-    f1 = '{} on {}.tif'.format(filename1, filename0)
+    f0 = '{} on {}.tif'.format(filename1, filename0)
+    f1 = '{} on {}.tif'.format(filename0, filename1)
     # Read (Multi-frame Tiff file)
-    ret0, imgs0 = cv.imreadmulti(path + '/' + f0)  #BGR
-    ret1, imgs1 = cv.imreadmulti(path + '/' + f1)  #BGR
+    ret0, imgs0 = cv.imreadmulti(path + '/output/' + f0)  #BGR
+    ret1, imgs1 = cv.imreadmulti(path + '/output/' + f1)  #BGR
 
     print('type(imgs0):', type(imgs0), '\nimgs0 (tuple) will be changed to a list')
     imgs0_l = list(imgs0)
@@ -459,8 +466,8 @@ def add_BefAft(
         cnt += 1
 
     # Output #
-    print('Output: ', path + '/' + f0.split('.')[0] + ' result.tif')
-    saveTiffStack(save_path=path + '/' + f0.split('.')[0] + ' result.tif', imgs=imgs0_l)
+    print('Output: ', path + '/output/' + f0.split('.')[0] + ' result.tif')
+    saveTiffStack(save_path=path + '/output/' + f0.split('.')[0] + ' result.tif', imgs=imgs0_l)
     print('add_BefAft() done!!')
 
 
